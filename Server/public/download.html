@@ -3,53 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P2PxRelay File Download</title>
+    <title>P2P File Download</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simple-peer/9.11.0/simplepeer.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"%3E%3Cpath fill="%230099ff" fill-opacity="0.2" d="M0,32L48,80C96,128,192,224,288,224C384,224,480,128,576,90.7C672,53,768,75,864,96C960,117,1056,139,1152,149.3C1248,160,1344,160,1392,160L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"%3E%3C/path%3E%3C/svg%3E');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center py-8 px-4">
-    <div id="app" class="bg-white bg-opacity-90 p-8 rounded-2xl shadow-2xl w-full max-w-lg text-center">
-        <h1 class="text-3xl sm:text-4xl font-bold mb-6 text-blue-600">P2PxRelay File Download</h1>
+<body class="bg-gradient-to-r from-blue-500 to-purple-600 min-h-screen">
+    <div class="flex items-center justify-center py-8 px-4">
+        <div id="app" class="bg-white bg-opacity-90 p-8 rounded-2xl shadow-2xl w-full max-w-lg text-center">
+            <h1 class="text-3xl sm:text-4xl font-bold mb-6 text-blue-600">P2PxRelay File Download</h1>
+            
+            <div class="mb-6 bg-blue-100 p-4 rounded-lg">
+                <p class="font-semibold text-gray-700 mb-2">File Name:</p>
+                <p id="fileName" class="text-blue-600 break-words text-lg">Waiting for connection...</p>
+            </div>
+            
+            <div class="mb-6 bg-purple-100 p-4 rounded-lg">
+                <p class="font-semibold text-gray-700 mb-2">File Size:</p>
+                <p id="fileSize" class="text-purple-600 text-lg">Waiting for connection...</p>
+            </div>
+            
+            <div class="mb-6 bg-green-100 p-4 rounded-lg">
+                <p class="font-semibold text-gray-700 mb-2">Status:</p>
+                <p id="status" class="text-green-600 text-lg font-semibold">Connecting...</p>
+            </div>
 
-        <div class="mb-6 bg-blue-100 p-4 rounded-lg">
-            <p>File Name:</p>
-            <p id="fileName">Waiting for connection...</p>
+            <div class="mb-6 text-left">
+                <h2 class="text-xl font-semibold mb-2 text-gray-700">How it works:</h2>
+                <ul class="list-disc list-inside text-gray-600 space-y-2">
+                    <li>Secure peer-to-peer connection</li>
+                    <li>No server storage - direct device-to-device transfer</li>
+                    <li>Fast and efficient file sharing</li>
+                    <li>Works across different networks and firewalls</li>
+                </ul>
+            </div>
+
+            <div class="mb-6">
+                <p class="text-gray-600">Your download will start automatically once connected. Please keep this page open until the download is complete.</p>
+            </div>
+            
+            <div class="mt-6 text-sm text-gray-500">
+                Made with ❤️ by <a href="https://github.com/sidinsearch" class="text-blue-600 hover:underline">sidinsearch</a>
+            </div>
         </div>
-
-        <div class="mb-6 bg-purple-100 p-4 rounded-lg">
-            <p>File Size:</p>
-            <p id="fileSize">Waiting for connection...</p>
-        </div>
-
-        <div class="mb-6 bg-green-100 p-4 rounded-lg">
-            <p>Status:</p>
-            <p id="status">Connecting...</p>
-        </div>
-
-        <div class="mb-6 text-left">
-            <h2 class="text-xl font-semibold mb-2 text-gray-700">How it works:</h2>
-            <ul class="list-disc pl-5">
-                <li>Secure peer-to-peer connection</li>
-                <li>No server storage - direct device-to-device transfer</li>
-                <li>Fast and efficient file sharing</li>
-                <li>Works across different networks and firewalls</li>
-            </ul>
-        </div>
-
-        <p class="mb-6">
-            Your download will start automatically once connected. Please keep this page open until the download is complete.
-        </p>
-
-        <p class="mt-6 text-sm text-gray-500">
-            Made with ❤️ by <a href="https://github.com/sidinsearch/P2PxRelay" class="text-blue-600 hover:underline">P2PxRelay</a>
-        </p>
     </div>
 
     <script>
-        // TODO: Replace with your Netlify site URL
-        const NETLIFY_SITE = 'https://your-site-name.netlify.app/.netlify/functions/relay';
+        const NETLIFY_SITE = "https://p2pxrelay.netlify.app/.netlify/functions/relay";
+        const shareId = window.location.pathname.split('/').pop();
+        let peer;
+        let fileMetadata;
+        let receivedChunks = [];
 
-        // Rest of the JavaScript code for WebRTC connection and file download
-        // ...
+        async function getMetadata() {
+            const response = await fetch(`${NETLIFY_SITE}/get-metadata/${shareId}`);
+            if (response.ok) {
+                const data = await response.json();
+                fileMetadata = data.metadata;
+                document.getElementById('fileName').textContent = fileMetadata.fileName;
+                document.getElementById('fileSize').textContent = `${(fileMetadata.fileSize / 1024 / 1024).toFixed(2)} MB`;
+            } else {
+                document.getElementById('status').textContent = "Error: Share not found";
+            }
+        }
+
+        async function initializePeerConnection() {
+            const response = await fetch(`${NETLIFY_SITE}/get-offer/${shareId}`);
+            if (response.ok) {
+                const data = await response.json();
+                const { connectionId, offer } = data;
+
+                peer = new SimplePeer({ trickle: false });
+
+                peer.on('signal', async (answer) => {
+                    await fetch(`${NETLIFY_SITE}/set-answer/${shareId}/${connectionId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ answer })
+                    });
+                });
+
+                peer.on('connect', () => {
+                    document.getElementById('status').textContent = "Connected";
+                });
+
+                peer.on('data', (chunk) => {
+                    if (chunk.toString() === "EOF") {
+                        const file = new Blob(receivedChunks);
+                        const downloadUrl = URL.createObjectURL(file);
+                        const a = document.createElement('a');
+                        a.href = downloadUrl;
+                        a.download = fileMetadata.fileName;
+                        a.click();
+                        URL.revokeObjectURL(downloadUrl);
+                        document.getElementById('status').textContent = "Download complete";
+                    } else {
+                        receivedChunks.push(chunk);
+                        const progress = (receivedChunks.reduce((total, chunk) => total + chunk.byteLength, 0) / fileMetadata.fileSize * 100).toFixed(2);
+                        document.getElementById('status').textContent = `Downloading: ${progress}%`;
+                    }
+                });
+
+                peer.signal(offer);
+            } else {
+                document.getElementById('status').textContent = "Error: No available connections";
+                window.location.href = "https://p2pxrelay.netlify.app/expired.html";
+            }
+        }
+
+        getMetadata().then(initializePeerConnection);
     </script>
 </body>
 </html>
