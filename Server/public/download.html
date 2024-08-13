@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2PxRelay File Download</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center py-8 px-4">
+    <div id="app" class="bg-white bg-opacity-90 p-8 rounded-2xl shadow-2xl w-full max-w-lg text-center">
+        <h1 class="text-3xl sm:text-4xl font-bold mb-6 text-blue-600">P2PxRelay File Download</h1>
+
+        <div class="mb-6 bg-blue-100 p-4 rounded-lg">
+            <p>File Name:</p>
+            <p id="fileName">Waiting for connection...</p>
+        </div>
+
+        <div class="mb-6 bg-purple-100 p-4 rounded-lg">
+            <p>File Size:</p>
+            <p id="fileSize">Waiting for connection...</p>
+        </div>
+
+        <div class="mb-6 bg-green-100 p-4 rounded-lg">
+            <p>Status:</p>
+            <p id="status">Connecting...</p>
+        </div>
+
+        <div class="mb-6 text-left">
+            <h2 class="text-xl font-semibold mb-2 text-gray-700">How it works:</h2>
+            <ul class="list-disc pl-5">
+                <li>Secure peer-to-peer connection</li>
+                <li>No server storage - direct device-to-device transfer</li>
+                <li>Fast and efficient file sharing</li>
+                <li>Works across different networks and firewalls</li>
+            </ul>
+        </div>
+
+        <p class="mb-6">
+            Your download will start automatically once connected. Please keep this page open until the download is complete.
+        </p>
+
+        <p class="mt-6 text-sm text-gray-500">
+            Made with ❤️ by <a href="https://github.com/sidinsearch/P2PxRelay" class="text-blue-600 hover:underline">P2PxRelay</a>
+        </p>
+    </div>
+
+    <script>
+        // TODO: Replace with your Netlify site URL
+        const NETLIFY_SITE = 'https://your-site-name.netlify.app/.netlify/functions/relay';
+
+        // Rest of the JavaScript code for WebRTC connection and file download
+        // ...
+    </script>
+</body>
+</html>
